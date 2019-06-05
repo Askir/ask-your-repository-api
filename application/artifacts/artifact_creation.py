@@ -9,6 +9,7 @@ from flask import current_app
 
 from application.artifacts.artifact_connector import ArtifactConnector
 from application.artifacts.image_recognition import ImageRecognizer
+from .image_search.feature_extractor import FeatureExtractor
 
 
 class ImageResizer:
@@ -125,6 +126,7 @@ class ArtifactCreator:
         """ Starts the creation process. """
         file_metadata = self._upload_file()
         artifact = self._save_to_db(file_metadata)
+        self._calculate_features(artifact)
         ImageRecognizer.auto_add_tags(artifact)
         return artifact
 
@@ -135,11 +137,16 @@ class ArtifactCreator:
         artifact.save()
         return artifact
 
+    def _calculate_features(self, artifact):
+        features = FeatureExtractor.default().extract(f"uploads/{artifact.file_url}")
+        artifact.features = features
+        artifact.save()
+
     def _upload_file(self):
         file_saver = FileSaver(self.file)
         file_saver.save()
 
-        image_resizer = ImageResizer(file_saver.file_path)
-        image_resizer.save_sizes()
+        #image_resizer = ImageResizer(file_saver.file_path)
+        #image_resizer.save_sizes()
 
         return file_saver.get_metadata()

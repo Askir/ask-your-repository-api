@@ -34,6 +34,8 @@ black = {version = "^18.3-alpha.0",allows-prereleases = true}
 pre-commit = "^1.15"
 python-magic = "^0.4.15"
 apscheduler = "^3.6"
+opencv-python = "^4.1"
+imutils = "^0.5.2"
 
 [tool.poetry.dev-dependencies]
 coverage = "*"

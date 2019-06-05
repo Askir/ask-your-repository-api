@@ -21,7 +21,12 @@ from application.socketio_parser import use_args as socketio_args
 from application.teams.team import Team
 from .artifact import Artifact
 from .elastic.sync_jobs import resync_elasticsearch_eventually
+from application.artifacts.image_search.searcher import Searcher
 
+from binascii import a2b_base64
+
+import uuid
+import pathlib
 
 @socketio.on("SYNCHRONIZED_SEARCH")
 @socketio_args(artifacts_validator.search_args())
@@ -129,7 +134,16 @@ class ArtifactsView(MethodResource):
         """Logic for querying several artifacts"""
         query_logger = logging.getLogger("query_logger")
         query_logger.info(str(params), extra={"user": str(get_jwt_identity())})
+        search_image = ""
+        if 'search_image' in params:
+            search_image = self._save_search_image(params.pop('search_image'))
+
         artifacts = _search_artifacts(params)
+
+        if search_image != "":
+            artifacts = Searcher.default().search(search_image, artifacts)
+
+
 
         if params["notify_clients"]:
             socketio.emit(
@@ -163,3 +177,14 @@ class ArtifactsView(MethodResource):
                 return abort(404, f"failed at <{id}>: not found")
 
         return no_content()
+
+    def _save_search_image(self, data_uri):
+        header, image = data_uri.split(",", 1)
+        image = image + "=="
+        binary_data = a2b_base64(image)
+        pathlib.Path('search_images').mkdir(parents=True, exist_ok=True)
+        search_image_path = f"search_images/{uuid.uuid4()}.png"
+        fd = open(search_image_path, 'wb')
+        fd.write(binary_data)
+        fd.close()
+        return search_image_path

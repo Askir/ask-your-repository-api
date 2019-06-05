@@ -1,10 +1,11 @@
 """Access to Artifacts via Neo4J"""
 
-from neomodel import StructuredNode, StringProperty, DateTimeProperty, RelationshipTo, RelationshipFrom, cardinality
+from neomodel import StructuredNode, StringProperty, DateTimeProperty, JSONProperty, RelationshipTo, RelationshipFrom, \
+    cardinality
 
-from application.model_mixins import DefaultPropertyMixin, DefaultHelperMixin
 from application.artifacts.artifact_schema import ArtifactSchema
 from application.artifacts.elastic import ElasticSyncer
+from application.model_mixins import DefaultPropertyMixin, DefaultHelperMixin
 from application.teams.drives.contains_rel import ContainsRel
 from .artifact_deletor import ArtifactDeletor
 
@@ -15,6 +16,7 @@ class Artifact(StructuredNode, DefaultPropertyMixin, DefaultHelperMixin):
     schema = ArtifactSchema
     file_url = StringProperty(required=True)
     file_date = DateTimeProperty()
+    features = JSONProperty()
 
     user_tags = RelationshipTo("application.models.Tag", "TAGGED_WITH", cardinality=cardinality.ZeroOrMore)
     label_tags = RelationshipTo("application.models.Tag", "LABELED_WITH", cardinality=cardinality.ZeroOrMore)
@@ -24,6 +26,7 @@ class Artifact(StructuredNode, DefaultPropertyMixin, DefaultHelperMixin):
     drive_folder = RelationshipFrom(
         "application.models.Drive", "CONTAINS", cardinality=cardinality.ZeroOrOne, model=ContainsRel
     )
+
     # <--Serialization methods-->
     # These methods should eventually be moved to the corresponding schema
     @property
