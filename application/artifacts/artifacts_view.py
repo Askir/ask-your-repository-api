@@ -3,7 +3,7 @@ Handles all logic of the artifacts api
 """
 import logging
 
-from flask import abort
+from flask import abort, current_app
 from flask_apispec import MethodResource, use_kwargs, marshal_with
 from flask_jwt_extended import jwt_optional, get_jwt_identity, jwt_required
 from flask_socketio import emit
@@ -22,6 +22,7 @@ from application.teams.team import Team
 from .artifact import Artifact
 from .elastic.sync_jobs import resync_elasticsearch_eventually
 from application.artifacts.image_search.searcher import Searcher
+from application.artifacts.image_search.sketch import Sketch
 
 from binascii import a2b_base64
 
@@ -135,13 +136,15 @@ class ArtifactsView(MethodResource):
         query_logger = logging.getLogger("query_logger")
         query_logger.info(str(params), extra={"user": str(get_jwt_identity())})
         search_image = ""
+        sketch = None
         if 'search_image' in params:
-            search_image = self._save_search_image(params.pop('search_image'))
+            search_image, search_file_name = self._save_search_image(params.pop('search_image'))
+            sketch = Sketch(file_url=search_file_name).save()
 
         artifacts = _search_artifacts(params)
 
         if search_image != "":
-            artifacts = Searcher.default().search(search_image, artifacts)
+            artifacts = Searcher.default().search(search_image, artifacts, sketch)
 
 
 
@@ -183,8 +186,12 @@ class ArtifactsView(MethodResource):
         image = image + "=="
         binary_data = a2b_base64(image)
         pathlib.Path('search_images').mkdir(parents=True, exist_ok=True)
-        search_image_path = f"search_images/{uuid.uuid4()}.png"
+
+
+        upload_folder = current_app.config["UPLOAD_FOLDER"]
+        image_file_name = f"search_images/{uuid.uuid4()}.png"
+        search_image_path = f"{upload_folder}/{image_file_name}"
         fd = open(search_image_path, 'wb')
         fd.write(binary_data)
         fd.close()
-        return search_image_path
+        return search_image_path, image_file_name
