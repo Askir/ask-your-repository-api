@@ -18,13 +18,15 @@ class Searcher():
         self.descriptors = descriptors
 
     def search(self, query_image, artifacts, sketch):
-        search_features = FeatureExtractor(self.descriptors).extract(query_image)
+        search_features = FeatureExtractor(self.descriptors, sketch=True).extract(query_image)
         results = []
+        descriptor = HOGDescriptor()
         for artifact in artifacts:
-            distance = 0
-            for descriptor in self.descriptors:
-                name = descriptor.name()
-                distance += descriptor.distance(search_features[name],artifact.features[name])
+            distance = 1000000
+            for feature in artifact.features:
+                new_dist = descriptor.distance(search_features, feature.features)
+                if new_dist < distance:
+                    distance = new_dist
             results.append({"artifact": artifact, "distance": distance})
             result = Result(distance=distance).save()
             result.sketch.connect(sketch)

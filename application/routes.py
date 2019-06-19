@@ -13,6 +13,7 @@ def create_routes(app):
     from application.presentations.presentations_routes import PRESENTATIONS
     from application.invites.invites_routes import INVITES
     from application.artifacts.tags.tags_view import TagsView
+    from application.artifacts.image_search.sketch_routes import SKETCHES
 
     app.register_blueprint(ARTIFACTS, url_prefix="/images")
     app.register_blueprint(USERS, url_prefix="/users")
@@ -21,6 +22,7 @@ def create_routes(app):
     app.register_blueprint(PRESENTATIONS, url_prefix="/presentations")
     app.register_blueprint(INVITES, url_prefix="/invites")
     app.register_blueprint(PASSWORD_RESETS, url_prefix="/password_resets")
+    app.register_blueprint(SKETCHES, url_prefix="/sketches")
 
     app.add_url_rule("/tags/suggested", "suggested_tags", TagsView().suggested_tags)
     app.add_url_rule("/", "show_status", HomeView().show_status)

@@ -16,7 +16,7 @@ class Artifact(StructuredNode, DefaultPropertyMixin, DefaultHelperMixin):
     schema = ArtifactSchema
     file_url = StringProperty(required=True)
     file_date = DateTimeProperty()
-    features = JSONProperty()
+    features = RelationshipTo("application.models.Feature", "HAS_FEATURE", cardinality=cardinality.ZeroOrMore)
 
     user_tags = RelationshipTo("application.models.Tag", "TAGGED_WITH", cardinality=cardinality.ZeroOrMore)
     label_tags = RelationshipTo("application.models.Tag", "LABELED_WITH", cardinality=cardinality.ZeroOrMore)

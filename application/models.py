@@ -8,3 +8,4 @@ from .artifacts.tags.tag import Tag  # noqa
 from .teams.drives.drive import Drive  # noqa
 from .artifacts.image_search.sketch import Sketch # noqa
 from .artifacts.image_search.result import Result # noqa
+from .artifacts.image_search.feature import Feature #noqa

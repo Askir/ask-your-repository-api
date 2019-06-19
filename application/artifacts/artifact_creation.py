@@ -10,6 +10,7 @@ from flask import current_app
 from application.artifacts.artifact_connector import ArtifactConnector
 from application.artifacts.image_recognition import ImageRecognizer
 from .image_search.feature_extractor import FeatureExtractor
+from .image_search.feature import Feature
 
 
 class ImageResizer:
@@ -139,7 +140,9 @@ class ArtifactCreator:
 
     def _calculate_features(self, artifact):
         features = FeatureExtractor.default().extract(f"uploads/{artifact.file_url}")
-        artifact.features = features
+        for feature in features:
+            feat = Feature(features=feature).save()
+            artifact.features.connect(feat)
         artifact.save()
 
     def _upload_file(self):
